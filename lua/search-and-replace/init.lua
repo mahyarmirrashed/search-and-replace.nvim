@@ -1,5 +1,10 @@
 local M = {}
 
+--- Escapes special regex characters in a string to treat it as a literal pattern.
+--- @param str string The input string to escape.
+--- @return string The escaped string.
+local function escape_regex(str) return str:gsub("([%.%*+%-%?%^%$%(%)%[%]%{%}%|%\\])", "\\%1") end
+
 --- Sets up the search-and-replace plugin by defining the :SearchAndReplace command.
 --- The command requires a search string and replacement string, with an optional file regex.
 --- @return nil
@@ -17,7 +22,7 @@ function M.setup()
     local file_regex = args[3] or ".*" -- Default to all files if not provided
 
     local inputs = {
-      search = search,
+      search = escape_regex(search),
       replace = replace,
       file_regex = file_regex,
     }
