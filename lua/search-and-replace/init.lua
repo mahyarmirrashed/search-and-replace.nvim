@@ -6,8 +6,8 @@ local Float = require("plenary.window.float")
 ---
 --- @param search string The pattern to search for.
 --- @param replace string The replacement text.
---- @param file_regex string|nil Regex/glob for files (passed to fd). Defaults to '.*'.
-local function open(search, replace, file_regex)
+--- @param glob string|nil Regex/glob for files (passed to fd). Defaults to '.*'.
+local function open(search, replace, glob)
   local columns, lines = vim.o.columns, vim.o.lines
   local width = math.floor(columns * 0.8)
   local height = math.floor(lines * 0.6)
@@ -25,12 +25,22 @@ local function open(search, replace, file_regex)
     style = "minimal",
   })
 
-  local cmd = string.format("fd --hidden --no-ignore --type f '%s' | sad -- '%s' '%s'", file_regex, search, replace)
+  local cmd = string.format(
+    "fd --hidden --no-ignore --type f --exclude .git --glob '%s' | sad -- '%s' '%s'",
+    glob,
+    search,
+    replace
+  )
 
   vim.fn.termopen(cmd, {
     shell = true,
     on_exit = function(_, exit_code)
-      if exit_code ~= 0 then vim.notify("Search and replace exited with code: " .. exit_code, vim.log.levels.WARN) end
+      if exit_code == 130 then
+      -- User cancelled, do nothing
+      elseif exit_code ~= 0 then
+        vim.notify("Search and replace exited with code: " .. exit_code, vim.log.levels.WARN)
+      end
+
       vim.api.nvim_win_close(win, true)
       vim.cmd("checktime")
     end,
@@ -45,7 +55,7 @@ end
 --- Sets up the search-and-replace plugin by defining the :SearchAndReplace command.
 ---
 --- Usage:
----   :SearchAndReplace <search> <replace> [file_regex]
+---   :SearchAndReplace <search> <replace> [glob]
 --- Example:
 ---   :SearchAndReplace foo bar         -- Replace 'foo' with 'bar' in all files
 ---   :SearchAndReplace foo bar .lua    -- Replace only in .lua files
@@ -54,14 +64,16 @@ end
 function M.setup()
   vim.api.nvim_create_user_command("SearchAndReplace", function(opts)
     local args = vim.tbl_map(vim.trim, vim.split(opts.args, "%s+", { trimempty = true }))
-    local search, replace, file_regex = args[1], args[2], args[3]
+    local search, replace, glob = args[1], args[2], args[3]
 
     if not search or not replace then
       vim.notify("Search string and replacement string are required.", vim.log.levels.ERROR)
       return
     end
 
-    open(search, replace, file_regex)
+    glob = glob or "*"
+
+    open(search, replace, glob)
   end, {
     nargs = "+",
     desc = "Interactive search and replace using fd+sad",
