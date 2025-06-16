@@ -99,11 +99,12 @@ function M.setup()
   })
 
   vim.api.nvim_create_user_command("SearchAndReplaceVisual", function(opts)
-    local selection = vim.trim(get_visual_selection())
+    local selection = get_visual_selection()
     if not selection or selection == "" then
       vim.notify("No visual selection found.", vim.log.levels.ERROR)
       return
     end
+    selection = vim.trim(selection)
 
     local args = vim.tbl_map(vim.trim, vim.split(opts.args, "%s+", { trimempty = true }))
     local replace, glob = args[1], args[2]
