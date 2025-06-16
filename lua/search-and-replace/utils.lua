@@ -52,8 +52,7 @@ end
 --- @param callback function Called with the captured output (table of match lines).
 --- @return nil
 local function run_sad_preview(inputs, callback)
-  local cmd = {
-    "sad",
+  local args = {
     "--preview",
     inputs.search,
     inputs.replace,
@@ -64,7 +63,7 @@ local function run_sad_preview(inputs, callback)
 
   Job:new({
     command = "sad",
-    args = cmd,
+    args = args,
     on_exit = function(job, code)
       if code ~= 0 then
         print("sad failed with exit code " .. code)
