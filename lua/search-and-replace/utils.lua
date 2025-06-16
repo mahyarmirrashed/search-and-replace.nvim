@@ -90,7 +90,7 @@ local function show_fzf_with_delta_preview(inputs, sad_output, callback)
     border = "single",
   })
 
-  local fzf_args = {
+  local args = {
     "--multi",
     "--prompt",
     "Select matches> ",
@@ -105,7 +105,7 @@ local function show_fzf_with_delta_preview(inputs, sad_output, callback)
 
   local job = Job:new({
     command = "fzf",
-    args = fzf_args,
+    args = args,
     writer = sad_output,
     on_exit = function(j, code)
       float:close()
