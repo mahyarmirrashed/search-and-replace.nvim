@@ -17,14 +17,6 @@ local function check()
       health.error(dep.name .. " is not installed. Install it from " .. dep.url)
     end
   end
-
-  -- Check plenary.nvim
-  local ok, _ = pcall(require, "plenary")
-  if ok then
-    health.ok("plenary.nvim is installed.")
-  else
-    health.error("plenary.nvim is not installed. Install it via your plugin manager.")
-  end
 end
 
 return {
