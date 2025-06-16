@@ -25,6 +25,8 @@ local function open(search, replace, glob)
     style = "minimal",
   })
 
+  glob = glob and vim.trim(glob) ~= "" and glob or "*"
+
   local cmd = string.format(
     "fd --hidden --no-ignore --type f --exclude .git --glob '%s' | sad -- '%s' '%s'",
     glob,
@@ -70,8 +72,6 @@ function M.setup()
       vim.notify("Search string and replacement string are required.", vim.log.levels.ERROR)
       return
     end
-
-    glob = glob or "*"
 
     open(search, replace, glob)
   end, {
