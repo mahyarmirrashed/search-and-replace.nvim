@@ -3,9 +3,6 @@ local M = {}
 --- Retrieves the current visual selection as a string using Neovim's modern Lua API.
 --- @return string|nil The selected text as a string, or nil if not in visual mode or selection is empty.
 local function get_visual_selection()
-  local mode = vim.fn.mode()
-  if not (mode == "v" or mode == "V" or mode == "\22") then return nil end
-
   local bufnr = vim.api.nvim_get_current_buf()
   local start = vim.api.nvim_buf_get_mark(bufnr, "<")
   local finish = vim.api.nvim_buf_get_mark(bufnr, ">")
