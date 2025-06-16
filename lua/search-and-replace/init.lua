@@ -1,6 +1,25 @@
 local M = {}
 
-local Float = require("plenary.window.float")
+--- Retrieves the current visual selection as a string using Neovim's modern Lua API.
+--- @return string|nil The selected text as a string, or nil if not in visual mode or selection is empty.
+local function get_visual_selection()
+  local mode = vim.fn.mode()
+  if not (mode == "v" or mode == "V" or mode == "\22") then return nil end
+
+  local bufnr = vim.api.nvim_get_current_buf()
+  local start = vim.api.nvim_buf_get_mark(bufnr, "<")
+  local finish = vim.api.nvim_buf_get_mark(bufnr, ">")
+
+  -- Convert to 0-based indexing for nvim_buf_get_text
+  local start_row = start[1] - 1
+  local start_col = start[2]
+  local end_row = finish[1] - 1
+  local end_col = finish[2] + 1 -- nvim_buf_get_text end_col is exclusive
+
+  local lines = vim.api.nvim_buf_get_text(bufnr, start_row, start_col, end_row, end_col, {})
+  if #lines == 0 then return nil end
+  return table.concat(lines, "\n")
+end
 
 --- Opens a floating terminal window running sad interactively on the supplied arguments.
 ---
@@ -76,7 +95,29 @@ function M.setup()
     open(search, replace, glob)
   end, {
     nargs = "+",
-    desc = "Interactive search and replace using fd+sad",
+    desc = "Search and replace using command mode",
+  })
+
+  vim.api.nvim_create_user_command("SearchAndReplaceVisual", function(opts)
+    local selection = vim.trim(get_visual_selection())
+    if not selection or selection == "" then
+      vim.notify("No visual selection found.", vim.log.levels.ERROR)
+      return
+    end
+
+    local args = vim.tbl_map(vim.trim, vim.split(opts.args, "%s+", { trimempty = true }))
+    local replace, glob = args[1], args[2]
+
+    if not replace or replace == "" then
+      vim.notify("Replacement string required.", vim.log.levels.ERROR)
+      return
+    end
+
+    open(selection, replace, glob)
+  end, {
+    nargs = "+",
+    range = true,
+    desc = "Search and replace using visual selection as search string",
   })
 end
 
