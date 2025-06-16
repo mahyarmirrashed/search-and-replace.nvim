@@ -30,20 +30,18 @@ local function apply_sad_replacements(inputs, selections, callback)
     unpack(files), -- Apply to selected files only
   }
 
-  require("plenary.job")
-    :new({
-      command = "sad",
-      args = args,
-      on_exit = function(_, code)
-        if code == 0 then
-          vim.notify("Replacements applied successfully to " .. #files .. " files.", vim.log.levels.INFO)
-        else
-          vim.notify("Failed to apply replacements (exit code " .. code .. ").", vim.log.levels.ERROR)
-        end
-        callback()
-      end,
-    })
-    :start()
+  Job:new({
+    command = "sad",
+    args = args,
+    on_exit = function(_, code)
+      if code == 0 then
+        vim.notify("Replacements applied successfully to " .. #files .. " files.", vim.log.levels.INFO)
+      else
+        vim.notify("Failed to apply replacements (exit code " .. code .. ").", vim.log.levels.ERROR)
+      end
+      callback()
+    end,
+  }):start()
 end
 
 --- Runs sad in preview mode to find matches and captures output.
