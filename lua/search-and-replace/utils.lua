@@ -24,8 +24,7 @@ local function apply_sad_replacements(inputs, selections, callback)
     end
   end
 
-  local cmd = {
-    "sad",
+  local args = {
     inputs.search,
     inputs.replace,
     unpack(files), -- Apply to selected files only
@@ -34,7 +33,7 @@ local function apply_sad_replacements(inputs, selections, callback)
   require("plenary.job")
     :new({
       command = "sad",
-      args = cmd,
+      args = args,
       on_exit = function(_, code)
         if code == 0 then
           vim.notify("Replacements applied successfully to " .. #files .. " files.", vim.log.levels.INFO)
