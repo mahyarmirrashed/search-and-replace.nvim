@@ -8,54 +8,36 @@ local Float = require("plenary.window.float")
 --- @param replace string The replacement text.
 --- @param file_regex string|nil Regex/glob for files (passed to fd). Defaults to '.*'.
 local function open(search, replace, file_regex)
-  file_regex = vim.trim(file_regex or ".*")
-
-  -- Calculate window size and position once
   local columns, lines = vim.o.columns, vim.o.lines
   local width = math.floor(columns * 0.8)
   local height = math.floor(lines * 0.6)
   local row = math.floor(lines * 0.2)
   local col = math.floor(columns * 0.1)
 
-  local float = Float:new({
+  local buf = vim.api.nvim_create_buf(false, true)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = "editor",
     width = width,
     height = height,
     row = row,
     col = col,
     border = "single",
+    style = "minimal",
   })
 
-  -- Configure buffer before mounting
-  vim.api.nvim_buf_set_option(float.bufnr, "filetype", "sad-terminal")
-  vim.api.nvim_buf_set_option(float.bufnr, "bufhidden", "wipe")
-  float:mount()
+  local cmd = string.format("fd --hidden --no-ignore --type f '%s' | sad -- '%s' '%s'", file_regex, search, replace)
 
-  -- Compose the shell command safely
-  local cmd = table.concat({
-    "fd",
-    "--hidden",
-    "--no-ignore",
-    "--type",
-    "f",
-    "'" .. file_regex .. "'",
-    "|",
-    "sad",
-    "--",
-    "'" .. search .. "'",
-    "'" .. replace .. "'",
-  }, " ")
-
-  local exited = false
   vim.fn.termopen(cmd, {
     shell = true,
     on_exit = function(_, exit_code)
-      if exited then return end
-      exited = true
       if exit_code ~= 0 then vim.notify("Search and replace exited with code: " .. exit_code, vim.log.levels.WARN) end
-      float:close()
+      vim.api.nvim_win_close(win, true)
       vim.cmd("checktime")
     end,
   })
+
+  vim.api.nvim_buf_set_option(buf, "filetype", "sad-terminal")
+  vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
   vim.schedule(function() vim.cmd("startinsert") end)
 end
