@@ -2,6 +2,8 @@
 
 A Neovim plugin for fast, interactive, project-wide search and replace using [fd](https://github.com/sharkdp/fd) and [sad](https://github.com/ms-jpq/sad). Provides a floating terminal UI, glob filtering, and visual-mode integration for easy code refactoring.
 
+![Screenshot](./res/screenshot.png)
+
 ## Features
 
 - Interactive search and replace using [sad](https://github.com/ms-jpq/sad) in a floating terminal
